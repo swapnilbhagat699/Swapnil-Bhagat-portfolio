@@ -265,7 +265,18 @@
 <section id="career-map-section" class="section-padding">
     <div class="container reveal">
         <h2 class="section-title">Career <span>Journey Map</span></h2>
-        <div class="glass-panel map-wrapper">
+        
+        <!-- Map Wrapper now contains the calculator UI -->
+        <div class="glass-panel map-wrapper" style="position: relative;">
+            
+            <!-- Distance Calculator Overlay -->
+            <div class="distance-calculator">
+                <button id="calc-distance-btn" class="btn btn-primary">
+                    <i class="fas fa-route"></i> Distance to My Office
+                </button>
+                <div id="distance-result" class="distance-result"></div>
+            </div>
+
             <div id="career-map"></div>
         </div>
     </div>

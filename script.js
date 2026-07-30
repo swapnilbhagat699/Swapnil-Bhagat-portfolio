@@ -145,3 +145,55 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.reset();
     });
 });
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // --- Radial Gauge Animation logic ---
+    const gaugeCards = document.querySelectorAll('.skill-gauge-card');
+    
+    // Animate the number counting up
+    const animateCounter = (counterElement) => {
+        const target = +counterElement.getAttribute('data-target');
+        const duration = 2000; // 2 seconds
+        const increment = target / (duration / 16); // 60fps
+        let current = 0;
+
+        const updateCounter = () => {
+            current += increment;
+            if (current < target) {
+                counterElement.innerText = Math.ceil(current);
+                requestAnimationFrame(updateCounter);
+            } else {
+                counterElement.innerText = target;
+            }
+        };
+        updateCounter();
+    };
+
+    // Intersection Observer to trigger animations on scroll
+    const gaugeObserverOptions = {
+        threshold: 0.5 // Trigger when 50% of the element is visible
+    };
+
+    const gaugeObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Add class to trigger SVG stroke animation via CSS
+                entry.target.classList.add('animate-gauge');
+                
+                // Find and trigger the counter number animation
+                const counter = entry.target.querySelector('.counter');
+                if (counter && !counter.classList.contains('counted')) {
+                    animateCounter(counter);
+                    counter.classList.add('counted'); // Prevent re-animating
+                }
+                
+                // Stop observing once animated
+                observer.unobserve(entry.target);
+            }
+        });
+    }, gaugeObserverOptions);
+
+    gaugeCards.forEach(card => {
+        gaugeObserver.observe(card);
+    });
+});

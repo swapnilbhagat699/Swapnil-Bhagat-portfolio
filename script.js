@@ -192,6 +192,79 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }, gaugeObserverOptions);
+    // --- Interactive Career Journey Map (Leaflet.js) ---
+    // Initialize map centered on South/West India
+    const map = L.map('career-map', {
+        scrollWheelZoom: false // Prevents getting stuck zooming when scrolling down the page
+    }).setView([15.5, 75.0], 6); 
+
+    // Add a modern, light base map to contrast with your dark theme (similar to your image)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+    }).addTo(map);
+
+    // Your Career Journey Waypoints
+    const journeyWaypoints = [
+        { 
+            title: "Graduation (Sangola)", 
+            coords: [17.4326, 75.1970], 
+            icon: "fa-graduation-cap" 
+        },
+        { 
+            title: "PG Diploma (Goa)", 
+            coords: [15.2736, 73.9698], 
+            icon: "fa-university" 
+        },
+        { 
+            title: "GIS Analyst (Bangalore)", 
+            coords: [12.9716, 77.5946], 
+            icon: "fa-map-marked-alt" 
+        },
+        { 
+            title: "Sr. GIS Exec (Jio, Pune)", 
+            coords: [18.5204, 73.8567], 
+            icon: "fa-building" 
+        },
+        { 
+            title: "Sr. GIS Expert (Pune)", 
+            coords: [18.6000, 73.9000], // Slightly offset from previous Pune location so markers don't overlap completely
+            icon: "fa-briefcase" 
+        }
+    ];
+
+    // Extract coordinates to draw the path line
+    const pathCoordinates = journeyWaypoints.map(point => point.coords);
+
+    // Draw the animated connecting line
+    const journeyPath = L.polyline(pathCoordinates, {
+        color: '#00d2ff', // Cyan primary color
+        weight: 3,
+        className: 'animated-path'
+    }).addTo(map);
+
+    // Loop through waypoints and add custom markers
+    journeyWaypoints.forEach(point => {
+        // Create custom HTML for the marker badge
+        const badgeHTML = `
+            <div class="marker-badge">
+                <i class="fas ${point.icon}"></i>
+                <span>${point.title}</span>
+            </div>
+        `;
+
+        const customIcon = L.divIcon({
+            className: 'custom-map-marker',
+            html: badgeHTML,
+            iconSize: [150, 40], // Give enough space for the badge
+            iconAnchor: [75, 20]  // Center the badge on the coordinate
+        });
+
+        // Add marker to map
+        L.marker(point.coords, { icon: customIcon }).addTo(map);
+    });
+
+    // Fit map bounds to show all markers perfectly on load
+    map.fitBounds(journeyPath.getBounds(), { padding: [50, 50] });
 
     gaugeCards.forEach(card => {
         gaugeObserver.observe(card);

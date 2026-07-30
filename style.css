@@ -597,3 +597,40 @@ footer { text-align: center; padding: 30px; margin-top: 50px; color: var(--text-
         stroke-dashoffset: 0;
     }
 }
+/* --- Distance Calculator UI --- */
+.distance-calculator {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1000; /* Keeps it above the Leaflet map layers */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+#calc-distance-btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.distance-result {
+    background: rgba(10, 15, 30, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--accent); /* Uses your green accent */
+    border-left: 4px solid var(--accent);
+    padding: 12px 15px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    display: none; /* Hidden until calculated */
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.15);
+}
+
+.distance-result span {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 1rem;
+}

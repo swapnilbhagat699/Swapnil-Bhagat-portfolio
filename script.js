@@ -270,3 +270,95 @@ document.addEventListener('DOMContentLoaded', () => {
         gaugeObserver.observe(card);
     });
 });
+// --- Visitor Route & Distance Calculator ---
+    const calcBtn = document.getElementById('calc-distance-btn');
+    const resultDiv = document.getElementById('distance-result');
+    let visitorRouteLayer; // Variable to store the drawn route
+
+    calcBtn.addEventListener('click', () => {
+        // 1. Check if browser supports geolocation
+        if (!navigator.geolocation) {
+            resultDiv.innerHTML = "Geolocation is not supported by your browser.";
+            resultDiv.style.display = "block";
+            return;
+        }
+
+        // 2. Show loading state
+        calcBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Locating...';
+
+        // 3. Get visitor's location
+        navigator.geolocation.getCurrentPosition((position) => {
+            const visitorLat = position.coords.latitude;
+            const visitorLng = position.coords.longitude;
+            
+            // Your current office coordinates (Pune)
+            const officeLat = 18.6000;
+            const officeLng = 73.9000;
+
+            // Add a marker for the visitor
+            L.marker([visitorLat, visitorLng], {
+                icon: L.divIcon({
+                    className: 'custom-map-marker',
+                    html: `<div class="marker-badge" style="border-color: #00ff88;"><i class="fas fa-user" style="background: #00ff88;"></i><span>You are here</span></div>`,
+                    iconSize: [120, 40],
+                    iconAnchor: [60, 20]
+                })
+            }).addTo(map);
+
+            calcBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating Route...';
+
+            // 4. Fetch the road route using OSRM API (Format: lon,lat;lon,lat)
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${visitorLng},${visitorLat};${officeLng},${officeLat}?overview=full&geometries=geojson`;
+
+            fetch(osrmUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.routes && data.routes.length > 0) {
+                        const route = data.routes[0];
+                        
+                        // Convert distance to km and duration to hours/minutes
+                        const distanceKm = (route.distance / 1000).toFixed(1);
+                        const durationHrs = Math.floor(route.duration / 3600);
+                        const durationMins = Math.floor((route.duration % 3600) / 60);
+
+                        // 5. Display the result
+                        resultDiv.innerHTML = `
+                            <i class="fas fa-car" style="color:#00ff88;"></i> Driving Distance: <span>${distanceKm} km</span><br>
+                            <i class="fas fa-clock" style="color:#00ff88;"></i> Est. Travel Time: <span>${durationHrs}h ${durationMins}m</span>
+                        `;
+                        resultDiv.style.display = "block";
+                        calcBtn.innerHTML = '<i class="fas fa-check"></i> Route Calculated';
+                        calcBtn.style.background = 'transparent';
+                        calcBtn.style.border = '2px solid #00ff88';
+                        calcBtn.style.color = '#00ff88';
+
+                        // 6. Draw the route line on the map
+                        if (visitorRouteLayer) map.removeLayer(visitorRouteLayer); // Remove old route if clicked twice
+                        
+                        visitorRouteLayer = L.geoJSON(route.geometry, {
+                            style: { 
+                                color: '#00ff88', // Green accent color
+                                weight: 4, 
+                                opacity: 0.8,
+                                dashArray: '10, 10' // Makes it a dashed line
+                            }
+                        }).addTo(map);
+
+                        // 7. Zoom out so the visitor can see the whole route from their location to you
+                        map.fitBounds(visitorRouteLayer.getBounds(), { padding: [50, 50] });
+                    }
+                })
+                .catch(err => {
+                    console.error("Routing error:", err);
+                    resultDiv.innerHTML = "Unable to find a road route.";
+                    resultDiv.style.display = "block";
+                    calcBtn.innerHTML = '<i class="fas fa-route"></i> Try Again';
+                });
+
+        }, (error) => {
+            // Handle if user denies location permission
+            resultDiv.innerHTML = "Please allow location access in your browser to calculate the distance.";
+            resultDiv.style.display = "block";
+            calcBtn.innerHTML = '<i class="fas fa-route"></i> Calculate Distance';
+        });
+    });
